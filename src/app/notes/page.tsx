@@ -1,40 +1,17 @@
 "use client"
-
-import { fetchNotes } from '@/actions/fetchNotes';
 import NoteCard from '@/components/NoteCard'
-import Loader from '@/components/ui/spinner';
-import { useEffect, useState } from 'react'
+import NotesProvider, { NotesContext } from '@/context/NoteCardContext';
+import { useContext } from 'react'
+
 
 const Notes = () => {
-
-
-    const [notes, setNotes] = useState<TypeNote[]>([]);
-
-    useEffect(() => {
-        async function loadBlogs() {
-            const allNotes = await fetchNotes();
-            setNotes(allNotes);
-        }
-        loadBlogs();
-    }, []);
-
-    if (notes.length == 0) {
-        return (
-            <div className='w-screen h-screen m-auto'>
-                <Loader />
-            </div>
-        );
-    }
-
+    // const [notes, setNotes] = useState<TypeNote[]>([]);
+    const { notes }: { notes: TypeNote[] } = useContext(NotesContext);
     return (
         <div className='flex flex-wrap'>
-            {
-                notes.length != 0 && notes.map((note) => (
-                    <div>
-                        <NoteCard id={note.id} title={note.title} content={note.content} tags={note.tags} />
-                    </div>
-                ))
-            }
+            {notes && notes.map((note: any) => (
+                <NoteCard note={note} />
+            ))}
         </div>
     )
 }

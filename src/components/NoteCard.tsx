@@ -1,11 +1,14 @@
 "use client"
 import { NotesContext } from "@/context/NoteCardContext"
-import { autoGrow, setZIndex, setNewOffset, getOffset } from "@/lib/utils"
+import { autoGrow, setZIndex, setNewOffset, getOffset, cn } from "@/lib/utils"
 import { Tags } from "lucide-react"
 import { useRef, useContext, useState, useEffect } from "react"
-import { TbTrashX } from "react-icons/tb"
 import DeleteButton from "./ui/DeleteButton"
+import { Shantell_Sans } from "next/font/google";
+import SavingLoader from "./ui/SavingLoader"
+import { updateNote } from "@/actions/fetchNotes"
 
+const shantell = Shantell_Sans({ weight: "500", subsets: ["latin"] });
 
 const NoteCard = ({
     note
@@ -26,7 +29,7 @@ const NoteCard = ({
     const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
     useEffect(() => {
-        // autoGrow(textAreaRef)
+        autoGrow(textAreaRef)
         if (cardRef.current) {
             setZIndex(cardRef.current)
         }
@@ -72,10 +75,12 @@ const NoteCard = ({
     }
 
     const savePositionToDatabase = async (key: any, value: any) => {
-        const payload = { [key]: JSON.stringify(value) }
+        const payload: TypeNote = { ...note, content: value }
+        console.log(payload);
+
         console.log("Save data called:", payload)
         try {
-            // await db.notes.update(note.$id, payload)
+            const response = await updateNote(note.id, payload);
         } catch (error) {
             console.error(error)
         }
@@ -85,13 +90,17 @@ const NoteCard = ({
 
     const handleKeyUp = async () => {
         setSaving(true)
+
         if (keyUpTimer.current) {
             clearTimeout(keyUpTimer.current)
+            keyUpTimer.current = null
         }
-        if (keyUpTimer.current) {
+        if (keyUpTimer.current == null) {
+            console.log("we here")
             keyUpTimer.current = setTimeout(() => {
                 if (textAreaRef.current && textAreaRef.current.value) {
-                    // savePositionToDatabase("body", textAreaRef.current.value)
+                    console.log(textAreaRef.current.value);
+                    savePositionToDatabase("body", textAreaRef.current.value)
                 }
             }, 2000)
         }
@@ -102,7 +111,7 @@ const NoteCard = ({
         <div
             key={note.id}
             ref={cardRef}
-            className="card m-5 p-2 shadow-notesHover w-[20rem] rounded-md bg-white bg-opacity-90"
+            className="card m-5 p-2 shadow-notesHover w-[20rem] rounded-md bg-white bg-opacity-[98%]"
             style={{
                 position: 'absolute',
                 left: `${position.x}px`,
@@ -119,30 +128,48 @@ const NoteCard = ({
                 <span className="font-bold text-md">
                     {note.title}
                 </span>
-                <div>
+                <div className="flex items-center justify-end gap-2">
+                    {saving && <SavingLoader />}
                     <DeleteButton noteID={note.id} />
                 </div>
             </div>
             <div className="w-full h-8 flex items-center justify-between">
                 <div>
-                    {note.tags.length > 0 &&
-                        <div className="flex flex-wrap mt-2 gap-2 justify-start text-[0.7rem]">
-                            <span className='pt-0.5 flex items-center justify-center'>
-                                <Tags className='h-4 flex items-center justify-center' />
-                            </span>
-                            {note.tags.map((tag) => (
+
+                    <div className="flex flex-wrap mt-2 gap-2 items-center justify-start text-[0.7rem]">
+                        <span className='pt-0.5 flex items-center justify-center'>
+                            <Tags className='h-4 flex items-center justify-center' />
+                        </span>
+                        {note.tags != null && note.tags.length > 0 ?
+                            note.tags.map((tag) => (
                                 <span id={tag}
                                     key={tag}
                                     className="px-1 flex items-center justify-center text-[8px] rounded-sm border border-black font-bold">
                                     {tag}
                                 </span>
-                            ))}
-                        </div>
-                    }
+                            ))
+                            : "untagged"
+                        }
+                    </div>
                 </div>
             </div>
-            <div className="font-normal text-sm mt-1 py-1 h-[calc(100%-4.4rem)]">
-                {note.content}
+            <div className="font-normal text-sm mt-1 p-1 rounded-sm h-[calc(100%-4.4rem)]">
+                <textarea
+                    onKeyUp={handleKeyUp}
+                    onFocus={() => {
+                        if (cardRef.current) {
+                            setZIndex(cardRef.current);
+                            setSelectedNote(note);
+                        }
+                    }}
+                    onInput={() => {
+                        autoGrow(textAreaRef);
+                    }}
+                    ref={textAreaRef}
+                    className={cn(shantell.className, "bg-inherit w-full h-full resize-none text-sm focus:outline-none text-gray-700")}
+                    // style={{ color: colors.colorText }}
+                    defaultValue={note.content}
+                ></textarea>
             </div>
         </div>
     )

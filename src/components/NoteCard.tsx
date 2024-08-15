@@ -22,7 +22,7 @@ const NoteCard = ({
     const { setSelectedNote } = useContext(NotesContext)
     const [saving, setSaving] = useState(false)
     const keyUpTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const [position, setPosition] = useState({ x: 34, y: 258 })
+    const [position, setPosition] = useState(note.position)
     // const colors = JSON.parse(note.colors)
     // const body = bodyParser(note.body)
 
@@ -36,6 +36,7 @@ const NoteCard = ({
     }, [])
 
     const handleOnMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        setSaving(true)
         const target = e.target as HTMLElement
         if (target.id === "cardheader") {
             mouseStartPos.x = e.clientX
@@ -70,14 +71,26 @@ const NoteCard = ({
         if (cardRef.current) {
             const newPosition = getOffset(cardRef.current);
             console.log(newPosition);
+            saveToDatabase("position", newPosition);
         }
 
     }
 
-    const savePositionToDatabase = async (key: any, value: any) => {
-        const payload: TypeNote = { ...note, content: value }
-        console.log(payload);
+    const saveToDatabase = async (key: string, value: any) => {
 
+        let payload = {} as TypeNote
+        switch (key) {
+            case "position":
+                payload = { ...note, position: value }
+                break;
+
+            case "content":
+                payload = { ...note, content: value }
+                break;
+
+            default:
+                break;
+        }
         console.log("Save data called:", payload)
         try {
             const response = await updateNote(note.id, payload);
@@ -96,11 +109,10 @@ const NoteCard = ({
             keyUpTimer.current = null
         }
         if (keyUpTimer.current == null) {
-            console.log("we here")
             keyUpTimer.current = setTimeout(() => {
                 if (textAreaRef.current && textAreaRef.current.value) {
                     console.log(textAreaRef.current.value);
-                    savePositionToDatabase("body", textAreaRef.current.value)
+                    saveToDatabase("content", textAreaRef.current.value)
                 }
             }, 2000)
         }
@@ -111,7 +123,7 @@ const NoteCard = ({
         <div
             key={note.id}
             ref={cardRef}
-            className="card m-5 p-2 shadow-notesHover w-[20rem] rounded-md bg-white bg-opacity-[98%]"
+            className="card p-2 shadow-notesHover w-[20rem] rounded-md bg-white bg-opacity-[98%]"
             style={{
                 position: 'absolute',
                 left: `${position.x}px`,
@@ -121,19 +133,22 @@ const NoteCard = ({
             }}
         >
             <div
-                className="border border-black w-full h-8 rounded-md flex items-center justify-between border-b bg-gray-300 px-2 cursor-pointer active:bg-gray-400 transition-colors duration-300 ease-out"
-                onMouseDown={handleOnMouseDown}
-                id="cardheader"
+                className="border border-black w-full h-8 rounded-md flex items-center gap-2 border-b bg-gray-300 px-2 cursor-pointer active:bg-gray-400 transition-colors duration-300 ease-out"
+
             >
-                <span className="font-bold text-md">
-                    {note.title}
-                </span>
-                <div className="flex items-center justify-end gap-2">
+                <div className="w-full flex items-center justify-between" onMouseDown={handleOnMouseDown}
+                    id="cardheader">
+                    <span className="font-bold text-md">
+                        {note.title}
+                    </span>
+
                     {saving && <SavingLoader />}
+                </div>
+                <div className="flex items-center justify-end gap-2">
                     <DeleteButton noteID={note.id} />
                 </div>
             </div>
-            <div className="w-full h-8 flex items-center justify-between">
+            {/* <div className="w-full h-8 flex items-center justify-between">
                 <div>
 
                     <div className="flex flex-wrap mt-2 gap-2 items-center justify-start text-[0.7rem]">
@@ -152,7 +167,7 @@ const NoteCard = ({
                         }
                     </div>
                 </div>
-            </div>
+            </div> */}
             <div className="font-normal text-sm mt-1 p-1 rounded-sm h-[calc(100%-4.4rem)]">
                 <textarea
                     onKeyUp={handleKeyUp}

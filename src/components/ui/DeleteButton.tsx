@@ -6,7 +6,6 @@ import React, { useContext } from 'react'
 const DeleteButton = ({ noteID }: { noteID: number }) => {
     const { setNotes } = useContext(NotesContext);
 
-
     const handleDelete = async () => {
         const response = deleteNote(noteID)
         setNotes((prevState: any) =>

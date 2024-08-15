@@ -1,4 +1,5 @@
 "use client"
+import ControlPanel from '@/components/ControlPanel';
 import NoteCard from '@/components/NoteCard'
 import NotesProvider, { NotesContext } from '@/context/NoteCardContext';
 import { useContext } from 'react'
@@ -12,6 +13,7 @@ const Notes = () => {
             {notes && notes.map((note: any) => (
                 <NoteCard note={note} />
             ))}
+            <ControlPanel />
         </div>
     )
 }

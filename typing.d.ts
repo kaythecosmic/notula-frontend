@@ -4,5 +4,6 @@ type TypeNote = {
   content: string;
   color: string;
   dateTime: Date;
+  position: any;
   tags: string[];
 };

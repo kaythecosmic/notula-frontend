@@ -19,7 +19,7 @@ const config = {
     },
     extend: {
       boxShadow: {
-        notesHover: "1px 1px 6px 2px #00000032",
+        notesHover: "1px 1px 6px 2px #00000040",
       },
       colors: {
         border: "hsl(var(--border))",

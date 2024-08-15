@@ -1,12 +1,14 @@
 "use client"
 import { NotesContext } from "@/context/NoteCardContext"
 import { autoGrow, setZIndex, setNewOffset, getOffset, cn } from "@/lib/utils"
-import { Tags } from "lucide-react"
 import { useRef, useContext, useState, useEffect } from "react"
 import DeleteButton from "./ui/DeleteButton"
 import { Shantell_Sans } from "next/font/google";
 import SavingLoader from "./ui/SavingLoader"
 import { updateNote } from "@/actions/fetchNotes"
+import { colors } from "@/lib/colors"
+import { Notebook } from "lucide-react"
+
 
 const shantell = Shantell_Sans({ weight: "500", subsets: ["latin"] });
 
@@ -23,8 +25,6 @@ const NoteCard = ({
     const [saving, setSaving] = useState(false)
     const keyUpTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
     const [position, setPosition] = useState(note.position)
-    // const colors = JSON.parse(note.colors)
-    // const body = bodyParser(note.body)
 
     const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -100,7 +100,6 @@ const NoteCard = ({
         setSaving(false)
     }
 
-
     const handleKeyUp = async () => {
         setSaving(true)
 
@@ -118,30 +117,28 @@ const NoteCard = ({
         }
     }
 
-
     return (
         <div
             key={note.id}
             ref={cardRef}
-            className="card p-2 shadow-notesHover w-[20rem] rounded-md bg-white bg-opacity-[98%]"
+            className={cn("card shadow-notesHover w-[20rem] rounded-md bg-opacity-[98%]")}
             style={{
                 position: 'absolute',
                 left: `${position.x}px`,
                 top: `${position.y}px`,
-                // backgroundColor: colors.colorBody,
+                backgroundColor: `${colors[note.color as keyof typeof colors].colorBody}`,
                 zIndex: 1,
             }}
         >
             <div
-                className="border border-black w-full h-8 rounded-md flex items-center gap-2 border-b bg-gray-300 px-2 cursor-pointer active:bg-gray-400 transition-colors duration-300 ease-out"
-
+                className="w-full h-7 rounded-md flex items-center gap-2 bg-gray-300 px-2 cursor-grab active:cursor-grabbing"
+                style={{
+                    backgroundColor: `${colors[note.color as keyof typeof colors].colorHeader}`,
+                }}
             >
                 <div className="w-full flex items-center justify-between" onMouseDown={handleOnMouseDown}
                     id="cardheader">
-                    <span className="font-bold text-md">
-                        {note.title}
-                    </span>
-
+                    <Notebook size={14}/>
                     {saving && <SavingLoader />}
                 </div>
                 <div className="flex items-center justify-end gap-2">
@@ -168,7 +165,7 @@ const NoteCard = ({
                     </div>
                 </div>
             </div> */}
-            <div className="font-normal text-sm mt-1 p-1 rounded-sm h-[calc(100%-4.4rem)]">
+            <div className="font-normal text-sm mt-1 px-2 rounded-sm h-[calc(100%-4.4rem)]">
                 <textarea
                     onKeyUp={handleKeyUp}
                     onFocus={() => {
@@ -181,8 +178,10 @@ const NoteCard = ({
                         autoGrow(textAreaRef);
                     }}
                     ref={textAreaRef}
-                    className={cn(shantell.className, "bg-inherit w-full h-full resize-none text-sm focus:outline-none text-gray-700")}
-                    // style={{ color: colors.colorText }}
+                    className={cn(shantell.className, "bg-inherit w-full h-full resize-none text-sm focus:outline-none")}
+                    style={{
+                        color: `${colors[note.color as keyof typeof colors].colorText}`,
+                    }}
                     defaultValue={note.content}
                 ></textarea>
             </div>
